@@ -25,12 +25,16 @@ class Leveldb < Formula
     bin.install "out-static/leveldbutil"
     lib.install "out-static/libleveldb.a"
     lib.install "out-static/libmemenv.a"
-    lib.install "out-shared/libleveldb.dylib.1.20" => "libleveldb.1.20.dylib"
-    lib.install_symlink lib/"libleveldb.1.20.dylib" => "libleveldb.dylib"
-    lib.install_symlink lib/"libleveldb.1.20.dylib" => "libleveldb.1.dylib"
-    MachO::Tools.change_dylib_id("#{lib}/libleveldb.1.dylib", "#{lib}/libleveldb.1.20.dylib")
+	if OS.mac?
+      lib.install "out-shared/libleveldb.dylib.1.20" => "libleveldb.1.20.dylib"
+      lib.install_symlink lib/"libleveldb.1.20.dylib" => "libleveldb.dylib"
+      lib.install_symlink lib/"libleveldb.1.20.dylib" => "libleveldb.1.dylib"
+      system "install_name_tool", "-id", "#{lib}/libleveldb.1.dylib", "#{lib}/libleveldb.1.20.dylib"
+    else
+      lib.install Dir["out-shared/libleveldb.so*"]
+    end
   end
-
+  
   test do
     assert_match "dump files", shell_output("#{bin}/leveldbutil 2>&1", 1)
   end
